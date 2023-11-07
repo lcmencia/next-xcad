@@ -1,9 +1,16 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import type { NextPage } from 'next'
 import Head from 'next/head' 
 import { Typography, Grid, Input, Box, Container, Stack, Toolbar, AppBar } from '@mui/material';
 
-// import { fromBech32Address, toBech32Address } from '@zilliqa-js/crypto';
-// import { isBech32, isAddress } from '@zilliqa-js/util/dist/validation';
+import { fromBech32Address } from '@zilliqa-js/crypto';
+
+import { useFetchCoinGeckoQuery, useFetchZilStreamQuery, useFetchCryptoRankQuery } from '../src/redux/services/priceApi';
+import { setAveragePrice } from '../src/redux/services/priceSlice';
+import type { RootState } from '../src/redux/store';
 
 /**
  * TODO [Part 1]:
@@ -25,13 +32,57 @@ import { Typography, Grid, Input, Box, Container, Stack, Toolbar, AppBar } from 
  */
 
 const Home: NextPage = (props) => {
+  const dispatch = useDispatch();
+
+  const averagePrice = useSelector((state: RootState) => state.priceReducer.averagePrice);
+
+  const [bech32Address, setBech32Address] = useState('');
+  const [base16Address, setBase16Address] = useState('');
+
+  const {
+    data: coingeckoPrice,
+    isSuccess: isSuccessCoinGecko,
+  } = useFetchCoinGeckoQuery();
+
+  const {
+    data: zilstreamPrice,
+    isSuccess: isSuccessZilStream,
+  } = useFetchZilStreamQuery();
+
+  const {
+    data: cryptorankPrice,
+    isSuccess: isSuccessCryptoRank,
+  } = useFetchCryptoRankQuery();
+
+  const isBech32 = (address: string) => {
+    const bech32Regex = /^(zil1)[0-9a-z]{38}$/;
+    return bech32Regex.test(address);
+  };
+
+  const handleConvert = () => {
+    if (isBech32(bech32Address)) {
+      const convertedAddress = fromBech32Address(bech32Address);
+      setBase16Address(convertedAddress);
+    } else {
+      alert('Invalid Bech32 address');
+      setBase16Address('');
+    }
+  };
+
+  useEffect(() => {
+    if (isSuccessCoinGecko && isSuccessZilStream && isSuccessCryptoRank) {
+      const average = ((coingeckoPrice + zilstreamPrice + cryptorankPrice) / 3).toFixed(2);
+      dispatch(setAveragePrice(Number(average)));
+    }
+  }, [isSuccessCoinGecko, isSuccessZilStream, isSuccessCryptoRank, coingeckoPrice, zilstreamPrice, cryptorankPrice, dispatch]);
+  
   return (
-    <Box >
+    <Box>
       <AppBar position='fixed'>
         <Container>
           <Toolbar disableGutters sx={{justifyContent:'space-between'}}>
             <Typography variant="h6" component="div" > Address Converter </Typography>
-            <Typography>XCAD: 0.00</Typography>
+            <Typography>XCAD: {averagePrice ? `${averagePrice}` : '0.00'}</Typography>
           </Toolbar>
         </Container>
       </AppBar>
@@ -45,11 +96,22 @@ const Home: NextPage = (props) => {
         
         <Stack mt={16} alignItems="center"> 
           <Grid container maxWidth={600} spacing={3}>
-            <Grid item xs={6}  >
-              <Input fullWidth placeholder='Bech32 Address' />
+            <Grid item xs={6}>
+              <Input
+                fullWidth
+                placeholder='Bech32 Address'
+                value={bech32Address}
+                onChange={(e) => setBech32Address(e.target.value)}
+                onBlur={handleConvert}
+              />
             </Grid>
-            <Grid item xs={6}  >
-              <Input fullWidth placeholder='Hex Address' />
+            <Grid item xs={6}>
+              <Input
+                fullWidth
+                placeholder='Hex Address'
+                value={base16Address}
+                readOnly
+              />
             </Grid>
           </Grid>
         </Stack>
