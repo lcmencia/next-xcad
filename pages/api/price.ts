@@ -15,13 +15,8 @@ export const priceApi = createApi({
     fetchCryptoRank: builder.query<number, void>({
       query: () => `https://api.cryptorank.io/v0/charts/prices-by-coin?keys=xcad-network&days=7`,
       transformResponse: (response: { data: { [key: string]: { timestamps: number[], prices: number[] } } }) => {
-        // Extract the 'xcad-network' prices array from the response
         const prices = response.data['xcad-network'].prices;
-    
-        // Calculate the sum of the prices
         const sum = prices.reduce((acc, price) => acc + price, 0);
-    
-        // Return the average price
         return sum / prices.length;
       },
     }),
