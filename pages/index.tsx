@@ -18,35 +18,13 @@ import {
 
 import { fromBech32Address } from "@zilliqa-js/crypto";
 
-import {
-  useFetchCoinGeckoQuery,
-  useFetchZilStreamQuery,
-  useFetchCryptoRankQuery,
-} from "../src/redux/services/priceApi";
-import { setAveragePrice } from "../src/redux/services/priceSlice";
 import type { RootState } from "../src/redux/store";
-
-/**
- * TODO [Part 1]:
- * Use the '@zilliqa-js/crypto' package to convert a Bech32 address to a Base16 address.
- * Allow the user to enter a Bech32 address, displaying the converted Base16 address on-screen.
- *
- * Example:
- *    Bech32 Address: zil1tym3sy8sary2y3lqy56dx4ej9v7fsxku52gl6z
- *    Base16 Address: 0x59371810F0E8c8a247E02534D357322B3c981AdC
- *
- *
- * TODO [Part 2]:
- * Using the "price" API, display the current XCAD price on-screen.
- *
- *
- * TODO [Part 3]:
- * Using the "balance" API, add button to allow a user to query the balance of any valid Base16 and Bech32 address.
- * Display the balance of the address on the client.
- */
+import { useAveragePrice } from '../src/utils/priceUtils';
 
 const Home: NextPage = (props) => {
   const dispatch = useDispatch();
+
+  useAveragePrice(dispatch);
 
   const averagePrice = useSelector(
     (state: RootState) => state.priceReducer.averagePrice
@@ -55,16 +33,7 @@ const Home: NextPage = (props) => {
   const [bech32Address, setBech32Address] = useState("");
   const [base16Address, setBase16Address] = useState("");
   const [balance, setBalance] = useState("");
-  const [balanceAddress, setBalanceAddress] = useState("");
 
-  const { data: coingeckoPrice, isSuccess: isSuccessCoinGecko } =
-    useFetchCoinGeckoQuery();
-
-  const { data: zilstreamPrice, isSuccess: isSuccessZilStream } =
-    useFetchZilStreamQuery();
-
-  const { data: cryptorankPrice, isSuccess: isSuccessCryptoRank } =
-    useFetchCryptoRankQuery();
 
   const isBech32 = (address: string) => {
     const bech32Regex = /^(zil1)[0-9a-z]{38}$/;
@@ -98,24 +67,6 @@ const Home: NextPage = (props) => {
     }
   };
 
-  useEffect(() => {
-    if (isSuccessCoinGecko && isSuccessZilStream && isSuccessCryptoRank) {
-      const average = (
-        (coingeckoPrice + zilstreamPrice + cryptorankPrice) /
-        3
-      ).toFixed(2);
-      dispatch(setAveragePrice(Number(average)));
-    }
-  }, [
-    isSuccessCoinGecko,
-    isSuccessZilStream,
-    isSuccessCryptoRank,
-    coingeckoPrice,
-    zilstreamPrice,
-    cryptorankPrice,
-    dispatch,
-  ]);
-
   return (
     <Box>
       <AppBar position="fixed">
@@ -139,7 +90,6 @@ const Home: NextPage = (props) => {
 
       <Container sx={{ marginTop: "64px" }}>
         {" "}
-        {/* Adjust top margin to accommodate AppBar */}
         <Stack mt={16} alignItems="center">
           <Grid container maxWidth={600} spacing={3}>
             <Grid item xs={6}>
@@ -154,7 +104,7 @@ const Home: NextPage = (props) => {
               <Button
                 onClick={() => handleConvert()}
                 variant="contained"
-                sx={{ marginTop: "8px" }} // Add some space between the input and button
+                sx={{ marginTop: "8px" }}
               >
                 Convert
               </Button>
@@ -163,17 +113,15 @@ const Home: NextPage = (props) => {
         </Stack>
         <Grid item xs={12} mt={2}>
           {" "}
-          {/* Margin top for spacing */}
           <Input fullWidth value={base16Address} readOnly />
           <Button
             onClick={() => fetchBalance(base16Address)}
             variant="contained"
-            sx={{ marginTop: "8px" }} // Add some space between the input and button
+            sx={{ marginTop: "8px" }}
           >
             Check Balance
           </Button>
           <Typography mt={1}>Balance: {balance}</Typography>{" "}
-          {/* Margin top for spacing */}
         </Grid>
       </Container>
     </Box>
