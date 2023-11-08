@@ -13,11 +13,14 @@ export function useAveragePrice(dispatch: any) {
 
   useEffect(() => {
     if (isSuccessCoinGecko && isSuccessZilStream && isSuccessCryptoRank) {
-      const average = (
-        (coingeckoPrice + zilstreamPrice + cryptorankPrice) /
-        3
-      ).toFixed(2);
-      dispatch(setAveragePrice(Number(average)));
+      const prices = [coingeckoPrice, zilstreamPrice, cryptorankPrice].filter((price): price is number => typeof price === 'number');
+      if (prices.length === 3) {
+        const average = (
+          (prices[0] + prices[1] + prices[2]) /
+          3
+        ).toFixed(2);
+        dispatch(setAveragePrice(Number(average)));
+      }
     }
   }, [
     isSuccessCoinGecko,
