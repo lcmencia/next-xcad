@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import priceReducer from './services/priceSlice';
-import { priceApi } from '../../pages/api/price';
+import { priceApi } from './services/priceApi';
 import { setupListeners } from "@reduxjs/toolkit/dist/query";
 
 export const store = configureStore({
