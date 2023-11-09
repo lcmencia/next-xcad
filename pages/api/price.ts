@@ -38,7 +38,7 @@ export default async function handler(
       (price): price is number => typeof price === "number"
     );
     if (prices.length === 3) {
-      const averagePrice = ((prices[0] + prices[1] + prices[2]) / 3).toFixed(2);
+      const averagePrice = parseFloat(((prices[0] + prices[1] + prices[2]) / 3).toFixed(2));
       res.status(200).json({ averagePrice });
     }
   } catch (err) {

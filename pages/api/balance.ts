@@ -25,8 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
       const balance = state.balances[address.toLowerCase()] || null;
 
-      console.log('BALANCE', balance);
-
       res.status(200).json({ balance });
     } catch (error) {
       console.error('ERROR', error);

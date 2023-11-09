@@ -18,17 +18,11 @@ import {
 
 import { fromBech32Address } from "@zilliqa-js/crypto";
 
+import { useGetAveragePriceQuery } from '../src/redux/services/priceApi';
 import type { RootState } from "../src/redux/store";
-import { useAveragePrice } from '../src/utils/priceUtils';
 
 const Home: NextPage = (props) => {
-  const dispatch = useDispatch();
-
-  useAveragePrice(dispatch);
-
-  const averagePrice = useSelector(
-    (state: RootState) => state.priceReducer.averagePrice
-  );
+  const { data } = useGetAveragePriceQuery();
 
   const [bech32Address, setBech32Address] = useState("");
   const [base16Address, setBase16Address] = useState("");
@@ -76,7 +70,7 @@ const Home: NextPage = (props) => {
               Address Converter
             </Typography>
             <Typography>
-              XCAD: {averagePrice ? `${averagePrice}` : "0.00"}
+              XCAD: {data ? `${data}` : "0.00"}
             </Typography>
           </Toolbar>
         </Container>
